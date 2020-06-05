@@ -1,21 +1,36 @@
 # -*- coding: utf-8 -*-
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-
-import plotly.graph_objects as go
-
 import numpy as np
 import pandas as pd
 
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
 
 # -----------------------------------------------------------------------------
-# Read data and predictions from model. 
-my_sample_data = np.random.random_sample(([100,3]))
-df = pd.DataFrame(my_sample_data,columns=['val1','val2','val3'])
 
+#def data_generator():
+    # Read data and predictions from model. 
+#    data_x = np.linspace(1,12,200)
+#    data_y = np.sin(data_x)
+#    sample_data =np.array([data_x,data_y])
+
+#    return sample_data
 # -----------------------------------------------------------------------------
 
+#def fig_generator(sample_data):
+#    import plotly.graph_objects as go
+#    data_x,data_y = sample_data 
+#    plot_data = go.scatter(x=data_x, y=data_y)
+#    plot_layout = go.Layout(title='projection')
+
+#    fig = go.Figure(data = plot_data)
+#    return (fig.data,fig.layout)
+
+# Load Data 
+data_x = np.linspace(1,12,200)
+data_y = np.sin(data_x)
+sample_data = np.array([data_x,data_y])
 
 
 # -----------------------------------------------------------------------------
@@ -41,26 +56,37 @@ app.layout = html.Div(children=[
     dcc.Dropdown(
         id='my-dropdown',
         options=[
-            {'label':'Product1', 'value':'p1'},
-            {'label':'Product2', 'value':'p2'},
-            {'label':'Product3', 'value':'p3'},
+            {'label':'Product1', 'value':1},
+            {'label':'Product2', 'value':2},
+            {'label':'Product3', 'value':3},
         ]
     ),
 
-    #dcc.Markdown(children=markdown_text),
-    dcc.Graph(
-        id='example-graph',
-        figure={ # figure command is the same as plotly
-            'data': [
-                {'x': [1, 2, 3], 'y': [4, 4, 2],  'name': 'SF'},
-            ],
-        }
-    )
+    dcc.Graph(id='graph')
 ])
 
 ###############################################################################
 
+## create callback buttons
+@app.callback(
+    Output('graph', 'figure'),
+    [Input('my-dropdown', 'value')])
 
+def update_plot(input_value):
+    if input_value == 1:
+        my_data_y = data_y
+    else:
+        my_data_y = np.ones_like(data_y)
+    figure = {
+        'data':[
+            {
+                'x': data_x, 
+                'y': my_data_y
+            }
+        ]
+    }
+    
+    return figure 
 
 if __name__ == '__main__':
     app.run_server(debug=True)
