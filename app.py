@@ -28,9 +28,10 @@ from dash.dependencies import Input, Output
 #    return (fig.data,fig.layout)
 
 # Load Data 
-data_x = np.linspace(1,12,200)
-data_y = np.sin(data_x)
-sample_data = np.array([data_x,data_y])
+fname = '../model_prediction/model_prediction.csv'
+data_x,data_y = np.loadtxt(fname,unpack=True,skiprows=1,delimiter=',')
+#data_y = np.sin(data_x)
+#sample_data = np.array([data_x,data_y])
 
 
 # -----------------------------------------------------------------------------
@@ -49,7 +50,7 @@ app.layout = html.Div(children=[
         style={'textAlign':'center'}
     ),
 
-    html.Div(children='Dash: A web application framework for Python.', 
+    html.Div(children='Predicting the Demand of your product', 
         style={'textAlign':'center'}
         ),
 
