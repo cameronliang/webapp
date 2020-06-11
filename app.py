@@ -9,30 +9,14 @@ from dash.dependencies import Input, Output
 
 # -----------------------------------------------------------------------------
 
-#def data_generator():
-    # Read data and predictions from model. 
-#    data_x = np.linspace(1,12,200)
-#    data_y = np.sin(data_x)
-#    sample_data =np.array([data_x,data_y])
 
-#    return sample_data
-# -----------------------------------------------------------------------------
-
-#def fig_generator(sample_data):
-#    import plotly.graph_objects as go
-#    data_x,data_y = sample_data 
-#    plot_data = go.scatter(x=data_x, y=data_y)
-#    plot_layout = go.Layout(title='projection')
-
-#    fig = go.Figure(data = plot_data)
-#    return (fig.data,fig.layout)
-
-# Load Data 
-fname = '../model_prediction/model_prediction.csv'
-data_x,data_y = np.loadtxt(fname,unpack=True,skiprows=1,delimiter=',')
-#data_y = np.sin(data_x)
-#sample_data = np.array([data_x,data_y])
-
+def ReadRevenueData(product_id):
+    # Load Data 
+    fname = '../cleaned_data/simulations/reveune.csv'
+    df = pd.read_csv(fname)
+    df = df.loc[df['product_id'] == product_id]
+    #time = np.arange(1,len(df['origin_revenue']),1)
+    return df
 
 # -----------------------------------------------------------------------------
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -42,7 +26,6 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 # -----------------------------------------------------------------------------
 
 ###############################################################################
-
 
 app.layout = html.Div(children=[
     html.H1(
@@ -54,12 +37,15 @@ app.layout = html.Div(children=[
         style={'textAlign':'center'}
         ),
 
+    #dcc.Input(id='input',value='Enter product ID', type='text'),
+    #html.Div(id='output'),
+
     dcc.Dropdown(
         id='my-dropdown',
         options=[
-            {'label':'Product1', 'value':1},
-            {'label':'Product2', 'value':2},
-            {'label':'Product3', 'value':3},
+            {'label':'Product 1', 'value':'prod1'},
+            {'label':'Product 2', 'value':'prod2'},
+            #{'label':'Product 3', 'value':'prod3'},
         ]
     ),
 
@@ -70,21 +56,37 @@ app.layout = html.Div(children=[
 
 ## create callback buttons
 @app.callback(
-    Output('graph', 'figure'),
-    [Input('my-dropdown', 'value')])
+    Output(component_id='graph', component_property='figure'),
+    [Input(component_id='my-dropdown', component_property='value')]
+    )
 
 def update_plot(input_value):
-    if input_value == 1:
-        my_data_y = data_y
-    else:
-        my_data_y = np.ones_like(data_y)
+    df = ReadRevenueData(input_value)
+    #if input_value == 1:
+    #    my_data_y1 = df['origin_revenue']
+    #    my_data_y2 = df['best_revenue']
+    #else:
+    #    my_data_y1 = np.ones_like(df['origin_revenue'])
+    #    my_data_y2 = np.ones_like(df['origin_revenue'])
     figure = {
         'data':[
             {
-                'x': data_x, 
-                'y': my_data_y
+                'x': df['time'], 
+                'y': df['origin_revenue'],
+                'type':'line',
+                'name':'Original Revenue'
+            },
+            {
+                'x': df['time'], 
+                'y': df['best_revenue'],
+                'type':'line',
+                'name':'Optimized Revenue'
             }
-        ]
+        ], 
+        'layout':{
+            'title': 'Cumulative Revenue'
+            #'xaxis_title':"x Axis Title",
+        }
     }
     
     return figure 
