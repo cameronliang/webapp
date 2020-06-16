@@ -18,7 +18,8 @@ def ReadRevenueData(product_id):
     return df
 
 def generate_table(table_array,max_rows=4):
-    columns=['Recommended Price Multiplier', 'Original Revenue ($)', 'Projection ($)', 'Improvement Factor (%)']
+    columns=['Original Price ($)','Original Revenue ($)', 
+             'Recommended Price($)','Projection ($)', 'Improvement Factor (%)']
 
     table = html.Table([
         html.Thead(
@@ -31,6 +32,19 @@ def generate_table(table_array,max_rows=4):
     ]) 
     return table
 
+def ProcessDataOutput(input_value):
+    price_dict = {'prod1':8.19, 'prod2':5.20}
+    sample_df = ReadRevenueData(input_value)
+    # create function for generating output for table
+    best_price = max(sample_df['best_price_changes'].iloc)
+    best_price = price_dict[input_value]*best_price
+    original_rev = sample_df['origin_revenue'].iloc[-1]
+    best_rev = sample_df['best_revenue'].iloc[-1]
+    improv_factor = (best_rev - original_rev)/original_rev
+    table_array = np.array([round(price_dict[input_value],2), round(original_rev,0),
+                            round(best_price,2),round(best_rev,0),round(improv_factor*100,2)])
+    
+    return table_array
 # -----------------------------------------------------------------------------
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -50,7 +64,7 @@ app.layout = html.Div(
                         className='nine columns'),
 
                 html.Div(children='''
-                        Dashboard for Amazon Seller
+                        Product Name and ID:
                         ''',
 
                         className='nine columns'
@@ -58,8 +72,8 @@ app.layout = html.Div(
                 dcc.Dropdown(
                     id='my-dropdown',
                     options=[
-                        {'label':'Product 1', 'value':'prod1'},
-                        {'label':'Product 2', 'value':'prod2'},
+                        {'label':'AEM Cold Air Intake kit Shortram', 'value':'prod1'},
+                        {'label':'Injen Cold Air Intake kit Shortram', 'value':'prod2'},
                     ], className='six columns'
                 ),
             ], className="row"
@@ -103,7 +117,8 @@ def update_plot(input_value):
                 'x': df['time'], 
                 'y': df['best_revenue'],
                 'type':'line',
-                'name':'Optimized Revenue'
+                'name':'Optimized Revenue',
+                'color':'green'
             }
         ], 
             'layout':{
@@ -120,22 +135,7 @@ def update_plot(input_value):
 
 @app.callback(Output('table', 'children'), [Input('my-dropdown', 'value')])
 def update_table(value):
-    #dff = clean_data(global_df, value)
-    sample_df = ReadRevenueData(value)
-
-    # create function for generating output for table
-    best_price = sample_df['best_price_changes'].iloc[-1]
-    original_rev = sample_df['origin_revenue'].iloc[-1]
-    best_rev = sample_df['best_revenue'].iloc[-1]
-    improv_factor = (best_rev - original_rev)/original_rev
-    table_array = np.array([round(best_price,2),round(original_rev,0),
-                    round(best_rev,0),round(improv_factor*100,2)])
-
-    #print(table_array)
-
-
-    #dff = pd.DataFrame(data=table_array.T, columns=['Recommended Price', 'Original Revenue', 'Projection', 'Improvement Factor'])
-
+    table_array = ProcessDataOutput(value)
     table = generate_table(table_array)
     
     return table
